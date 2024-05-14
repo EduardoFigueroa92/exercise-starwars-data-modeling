@@ -12,88 +12,76 @@ class Usuario(Base):
     __tablename__ = 'usuarios'
 
     id = Column(Integer, primary_key=True)
-    nombre = Column(String)
-    apellido = Column(String)
+    username = Column(String, unique=True)
     email = Column(String, unique=True)
-    contraseña = Column(String)
+    password = Column(String)
+    fecha_creacion = Column(String)
 
-    favoritos = relationship("Favoritos", back_populates="usuario")
-
-    def __repr__(self):
-        return f"<Usuario(nombre='{self.nombre}', apellido='{self.apellido}', email='{self.email}')>"
-
-
-
-
-class Favoritos(Base):
-    __tablename__ = 'favoritos'
+    FavoritosPersonaje = relationship("FavoritosPersonaje", backref="usuario", lazy=True)
+    FavoritosPlaneta = relationship("FavoritosPlaneta", backref="usuario", lazy=True)
+    FavoritosVehiculo = relationship("FavoritosVehiculo", backref="usuario", lazy=True)
+    
+class FavoritosPersonaje(Base):
+    __tablename__ = 'favoritosPersonaje'
 
     id = Column(Integer, primary_key=True)
-    tipo = Column(String)  # Puede ser 'planeta' o 'personaje'
-    favorito_id = Column(Integer)
     usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    personaje_id = Column(Integer, ForeignKey('personaje.id'))
 
-    
-    planeta = relationship("Planetas", foreign_keys=[favorito_id], backref="favoritos")
-    personaje = relationship("Personajes", foreign_keys=[favorito_id], backref="favoritos")
+class FavoritosPlaneta(Base):
+    __tablename__ = 'favoritosPlaneta'
 
-    usuario = relationship("Usuario", back_populates="favoritos")
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    planeta_id = Column(Integer, ForeignKey('planetas.id'))
 
 
-class Planetas(Base):
+class FavoritosVehiculo(Base):
+    __tablename__ = 'favoritosVehiculo'
+
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    vehiculo_id = Column(Integer, ForeignKey('vehiculo.id'))
+
+
+class Planeta(Base):
     __tablename__ = 'planetas'
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String)
-    descripcion = Column(String)
+    clima = Column(String)
+    terreno = Column(String)
+    poblacion = Column(Integer)
 
-    favoritos = relationship("Favoritos", backref="planetas")
+    FavoritosPlaneta = relationship("FavoritosPlaneta", backref="planeta", lazy=True)
 
 
-class Personajes(Base):
-    __tablename__ = 'personajes'
+class Personaje(Base):
+    __tablename__ = 'personaje'
 
     id = Column(Integer, primary_key=True)
     nombre = Column(String)
-    descripcion = Column(String)
+    especie = Column(String)
+    altura = Column(Integer)
+    peso = Column(Integer)
 
-    favoritos = relationship("Favoritos", backref="personajes")
+    FavoritosPersonaje = relationship("FavoritosPersonaje", backref="personajes", lazy=True)
 
 
-Base = declarative_base()
+class Vehiculo(Base):
+    __tablename__ = 'vehiculo'
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    nombre = Column(String)
+    especie = Column(String)
+    altura = Column(Integer)
+    peso = Column(Integer)
 
-    addresses = relationship("Address", back_populates="person")
-
-    favoritos = relationship("Favoritos", backref="person")
+    FavoritosVehiculo = relationship("FavoritosVehiculo", backref="vehiculos", lazy=True)
 
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('Person.id'))
 
-    person = relationship("Person", back_populates="addresses")
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "street_name": self.street_name,
-            "street_number": self.street_number,
-            "post_code": self.post_code,
-            "person_id": self.person_id
-        }
 
 ## Draw from SQLAlchemy base
 render_er(Base, 'diagram.png')
